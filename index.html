@@ -430,13 +430,7 @@
                     output: '[*] CI status check completed'
                 },
                 
-                // Analisi strumenti sistema
-                { 
-                    cmd: 'sudo --version', 
-                    output: '[*] Sudo version information displayed'
-                },
-                
-                // Kubernetes secrets enumeration
+
                 { 
                     cmd: 'kubectl get secrets --all-namespaces', 
                     output: 'default/db-secret\ndefault/api-token\nkube-system/service-account-token'
