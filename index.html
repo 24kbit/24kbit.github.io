@@ -6,26 +6,32 @@
     <title>24kb.it - dev & security</title>
     <style>
         body {
-            font-family: "HelveticaNeue-Light", Helvetica, Arial, sans-serif;
+            font-family: monospace;
             margin: 0;
             padding: 0;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
             align-items: center;
+            background-color: #000;
+            color: #fff;
         }
         .logo-container {
             text-align: center;
             margin-top: 20px;
+            color: #fff;
+            font-family: monospace;
         }
         .info-text {
             text-align: center;
+            color: #fff;
+            font-family: monospace;
         }
         .terminal-container {
             width: 100%;
             height: 33vh;
-            background-color: #fff;
-            color: #000;
+            background-color: #000;
+            color: #0f0;
             font-family: monospace;
             margin-top: auto;
             overflow: hidden;
@@ -41,7 +47,7 @@
             display: inline-block;
             width: 8px;
             height: 15px;
-            background-color: #000;
+            background-color: #0f0;
             animation: blink 1s step-end infinite;
             vertical-align: middle;
         }
@@ -53,7 +59,13 @@
 </head>
 <body>
     <div class="logo-container">
-        <img src="24kb.png" alt="24kb">
+        <pre>
+   ██████  ██   ██ ██   ██ ██████  
+  ██       ██  ██  ██  ██  ██   ██ 
+  ██   ███ █████   █████   ██████  
+  ██    ██ ██  ██  ██  ██  ██   ██ 
+   ██████  ██   ██ ██   ██ ██████  
+        </pre>
     </div>
     
     <h3 class="info-text">dev & security</h3>
