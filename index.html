@@ -474,7 +474,7 @@
             function typeText() {
                 if (cmdIndex >= commands.length) {
                     cmdIndex = 0; // Loop back to start
-                    terminal.innerHTML = '';
+                    terminal.textContent = ''; // Clear terminal using textContent
                 }
                 
                 const currentCmd = commands[cmdIndex];
@@ -482,18 +482,36 @@
                 if (!outputStarted) {
                     // Typing the command
                     if (charIndex === 0) {
-                        terminal.innerHTML += '$ ';
+                        // Create command line container
+                        const commandLine = document.createElement('div');
+                        commandLine.style.whiteSpace = 'pre';
+                        
+                        // Create prompt text node (no HTML)
+                        const promptText = document.createTextNode('$ ');
+                        commandLine.appendChild(promptText);
+                        
+                        // Create command span for typing
+                        const commandSpan = document.createElement('span');
+                        commandLine.appendChild(commandSpan);
+                        
+                        // Add to terminal
+                        terminal.appendChild(commandLine);
+                        
+                        // Store reference to command span for typing
+                        window.currentCommandSpan = commandSpan;
                     }
                     
                     if (charIndex < currentCmd.cmd.length) {
-                        terminal.innerHTML += currentCmd.cmd.charAt(charIndex);
+                        // Add character to command span
+                        window.currentCommandSpan.textContent += currentCmd.cmd.charAt(charIndex);
                         charIndex++;
-                        setTimeout(typeText, 50); // Simulating typing speed from bash script (0.05s)
+                        setTimeout(typeText, 50); // Simulating typing speed
                     } else {
-                        terminal.innerHTML += '<br>';
+                        // Command finished, add line break
+                        terminal.appendChild(document.createElement('br'));
                         outputStarted = true;
                         charIndex = 0;
-                        setTimeout(typeText, 300); // Pause before showing output (0.3s from bash script)
+                        setTimeout(typeText, 300); // Pause before showing output
                     }
                 } else {
                     // Showing the output line by line
@@ -503,37 +521,42 @@
                         
                         function printLine() {
                             if (lineIndex < lines.length) {
-                                terminal.innerHTML += lines[lineIndex] + '<br>';
+                                // Create output line as text node
+                                const outputLine = document.createElement('div');
+                                outputLine.style.whiteSpace = 'pre';
+                                outputLine.textContent = lines[lineIndex];
+                                terminal.appendChild(outputLine);
+                                
                                 lineIndex++;
-                                setTimeout(printLine, 100); // 0.1s delay between lines from bash script
+                                setTimeout(printLine, 100); // 0.1s delay between lines
                             } else {
-                                // Output finished
-                                terminal.innerHTML += '<br>';
+                                // Output finished, add empty line
+                                const emptyLine = document.createElement('div');
+                                emptyLine.style.height = '1em';
+                                terminal.appendChild(emptyLine);
+                                
                                 outputStarted = false;
                                 charIndex = 0;
                                 cmdIndex++;
                                 
-                                // Add cursor at the end
-                                terminal.innerHTML += '<span class="cursor"></span>';
-                                
                                 // Scroll to bottom
                                 terminal.scrollTop = terminal.scrollHeight;
                                 
-                                // Wait before starting next command (0.5s from bash script)
+                                // Wait before starting next command
                                 setTimeout(typeText, 500);
                             }
                         }
                         
                         printLine();
                     } else {
-                        // No output, move to next command
-                        terminal.innerHTML += '<br>';
+                        // No output, add empty line and move to next command
+                        const emptyLine = document.createElement('div');
+                        emptyLine.style.height = '1em';
+                        terminal.appendChild(emptyLine);
+                        
                         outputStarted = false;
                         charIndex = 0;
                         cmdIndex++;
-                        
-                        // Add cursor at the end
-                        terminal.innerHTML += '<span class="cursor"></span>';
                         
                         // Wait before starting next command
                         setTimeout(typeText, 500);
