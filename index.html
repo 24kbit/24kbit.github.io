@@ -6,26 +6,32 @@
     <title>24kb.it - dev & security</title>
     <style>
         body {
-            font-family: "HelveticaNeue-Light", Helvetica, Arial, sans-serif;
+            font-family: monospace;
             margin: 0;
             padding: 0;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
             align-items: center;
+            background-color: #000;
+            color: #fff;
         }
         .logo-container {
             text-align: center;
             margin-top: 20px;
+            color: #fff;
+            font-family: monospace;
         }
         .info-text {
             text-align: center;
+            color: #fff;
+            font-family: monospace;
         }
         .terminal-container {
             width: 100%;
             height: 33vh;
-            background-color: #fff;
-            color: #000;
+            background-color: #000;
+            color: #0f0;
             font-family: monospace;
             margin-top: auto;
             overflow: hidden;
@@ -41,7 +47,7 @@
             display: inline-block;
             width: 8px;
             height: 15px;
-            background-color: #000;
+            background-color: #0f0;
             animation: blink 1s step-end infinite;
             vertical-align: middle;
         }
@@ -53,7 +59,12 @@
 </head>
 <body>
     <div class="logo-container">
-        <img src="24kb.png" alt="24kb">
+        <div style="font: 9px monospace; line-height:9px;">
+            <!-- 24KB Logo -->
+            <div style="text-align: center; margin: 0 auto;">
+                <img src="24kb_black.png" alt="24kb" style="max-width: 300px; margin: 20px auto;">
+            </div>
+        </div>
     </div>
     
     <h3 class="info-text">dev & security</h3>
@@ -509,7 +520,7 @@
                                 cmdIndex++;
                                 
                                 // Add cursor at the end
-                                terminal.innerHTML += '$ <span class="cursor"></span>';
+                                terminal.innerHTML += '<span class="cursor"></span>';
                                 
                                 // Scroll to bottom
                                 terminal.scrollTop = terminal.scrollHeight;
@@ -528,7 +539,7 @@
                         cmdIndex++;
                         
                         // Add cursor at the end
-                        terminal.innerHTML += '$ <span class="cursor"></span>';
+                        terminal.innerHTML += '<span class="cursor"></span>';
                         
                         // Wait before starting next command
                         setTimeout(typeText, 500);
